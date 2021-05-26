@@ -14,24 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import io.realm.RealmChangeListener;
+import io.realm.RealmResults;
+
 public class ListActivity extends AppCompatActivity {
 
     static List<User> usersList = new ArrayList<>();
-
-    static {
-        for (int i = 0; i < 20; i++) {
-            usersList.add(new User(
-                    "Name" + randomInt(),
-                    "Description " + randomInt(),
-                    i,
-                    randomInt() % 2 == 1
-            ));
-        }
-    }
-
-    private static int randomInt() {
-        return new Random().nextInt();
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +42,17 @@ public class ListActivity extends AppCompatActivity {
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int targetPos = viewHolder.getAdapterPosition();
-                usersList.remove(targetPos);
-                adapter.notifyItemRemoved(targetPos);
+                User user = usersList.remove(targetPos);
+                if (user != null) {
+                    User.delete(user.id);
+                    adapter.notifyItemRemoved(targetPos);
+                }
             }
         }).attachToRecyclerView(recyclerView);
+
+        User.getAll().addChangeListener(users -> {
+            usersList.addAll(users);
+            adapter.notifyDataSetChanged();
+        });
     }
 }

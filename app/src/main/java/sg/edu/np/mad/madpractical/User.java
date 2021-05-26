@@ -1,19 +1,44 @@
 package sg.edu.np.mad.madpractical;
 
-public class User {
-    public String name;
+import java.util.UUID;
+
+import io.realm.RealmAsyncTask;
+import io.realm.RealmObject;
+import io.realm.RealmResults;
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.Required;
+
+public class User extends RealmObject {
+
+    public static RealmAsyncTask delete(String id) {
+        return App.realm.executeTransactionAsync(realm -> {
+            User user = realm.where(User.class).equalTo("id", id).findFirst();
+            if (user != null) {
+                user.deleteFromRealm();
+            }
+        });
+    }
+
+    public static RealmResults<User> getAll() {
+        return App.realm.where(User.class).findAllAsync();
+    }
+
+    @PrimaryKey public String id = UUID.randomUUID().toString();;
+    @Required public String name;
     public String description;
-    public int id;
     public boolean followed;
 
     public User() {
     }
 
-    public User(String name, String description, int id, boolean followed) {
+    public User(String name, String description, boolean followed) {
         this.name = name;
         this.description = description;
-        this.id = id;
         this.followed = followed;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getName() {
@@ -30,14 +55,6 @@ public class User {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public boolean isFollowed() {
